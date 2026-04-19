@@ -1,0 +1,72 @@
+server:
+  port: 8080
+  servlet:
+    session:
+      cookie:
+        same-site: none
+        secure: false
+  address: 0.0.0.0
+
+spring:
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 500MB
+
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost:3307/blike?useUnicode=true&characterEncoding=utf-8&serverTimezone=GMT%2B8&useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+  mail:
+    host: smtp.163.com
+    port: 465
+    username: 13646854845@163.com
+    password: KMgajmi96YUfyB9P
+    properties:
+      mail:
+        smtp:
+          auth: true
+          ssl:
+            enable: true
+      # 发件人地址（可选，代码中也可设置）
+      from: 13646854845@163.com
+  data:
+    redis:
+      database: 0
+      host: localhost
+      port: 6379
+      connect-timeout: 10s
+
+# 文件上传本地存储路径（必须）
+file:
+  upload:
+    path: D:/blike-upload/
+    cover-path: /upload/cover/
+    video-path: /upload/video/
+    avatar-path: /upload/avatar/
+
+# MyBatis 配置
+mybatis:
+  mapper-locations: classpath:mapper/**/*.xml
+  type-aliases-package: com.blike.entity
+  configuration:
+    map-underscore-to-camel-case: true
+
+# 关闭 Redis 健康检查（避免启动警告）
+management:
+  health:
+    redis:
+      enabled: false
+
+# CORS 跨域配置（供 SecurityConfiguration 读取）
+cors:
+  allowed-origins: http://localhost:5173
+  allowed-methods: GET,POST,PUT,DELETE,OPTIONS
+  allowed-headers: "*"
+  expose-headers: "*"
+  allow-credentials: true
+  max-age: 3600
+logging:
+  level:
+    org.springframework.security: DEBUG

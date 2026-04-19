@@ -1,0 +1,46 @@
+## 后端 README (`blike-backend/README.md`)
+
+```markdown
+# Blike 后端
+
+仿B站视频与文章分享平台的后端服务，基于 Spring Boot 3.4 + MyBatis + JWT 构建，提供 RESTful API，支持用户认证、视频/文章管理、评论、点赞、关注等功能。
+
+## 技术栈
+
+- **框架**: Spring Boot 3.4.2
+- **ORM**: MyBatis 3.5.14
+- **安全认证**: Spring Security + JWT (无状态)
+- **数据库**: MySQL 8.0
+- **缓存**: Redis（验证码存储）
+- **文件存储**: 本地文件系统（可扩展为 OSS）
+- **邮件服务**: JavaMail (Spring Mail)
+- **视频处理**: FFmpeg（自动修复 moov 原子，自动截图生成封面）
+- **API 文档**: Knife4j (OpenAPI 3)
+
+## 主要功能
+
+- 用户注册（邮箱验证码）、登录（JWT Token）
+- 视频上传（支持封面手动上传或自动截取视频帧）
+- 文章发布（富文本内容存储）
+- 视频/文章列表、详情查询
+- 评论功能（视频和文章评论分开）
+- 点赞（视频/文章）、关注用户
+- 个人资料修改（头像、密码、简介）
+- 访客用户主页（查看他人发布的视频和文章）
+- 基于 JWT 的无状态认证
+
+## 快速开始
+
+### 环境要求
+
+- JDK 17+
+- MySQL 8.0
+- Redis（建议 5.0+）
+- FFmpeg（用于视频处理，需加入系统 PATH）
+
+### 数据库初始化
+
+执行项目根目录下的 `init.sql`（或手动创建数据库）：
+
+```sql
+CREATE DATABASE blike DEFAULT CHARACTER SET utf8mb4;

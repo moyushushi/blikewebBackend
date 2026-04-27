@@ -6,6 +6,7 @@ import com.blike.mapper.ArticleMapper;
 import com.blike.mapper.LikeArticleMapper;
 import com.blike.service.ArticleService;
 import com.blike.service.VideoService; // 复用文件上传
+import com.blike.utils.RedisCountUtil;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
@@ -25,14 +26,35 @@ public class ArticleServiceImpl implements ArticleService {
     @Resource
     private LikeArticleMapper likeArticleMapper;
 
+    @Resource
+    private RedisCountUtil redisCountUtil;
+
     @Override
     public List<Article> getArticleList() {
-        return articleMapper.selectAllPublished();
+        List<Article> list = articleMapper.selectAllPublished();
+        for (Article article : list) {
+            long viewInc = redisCountUtil.getArticleViewCount(article.getId());
+            long likeInc = redisCountUtil.getArticleLikeCount(article.getId());
+            long commentInc = redisCountUtil.getArticleCommentCount(article.getId());
+            article.setViewCount(article.getViewCount() + (int) viewInc);
+            article.setLikeCount(article.getLikeCount() + (int) likeInc);
+            article.setCommentCount(article.getCommentCount() + (int) commentInc);
+        }
+        return list;
     }
 
     @Override
     public Article getArticleById(Integer id) {
-        return articleMapper.selectById(id);
+        Article article = articleMapper.selectById(id);
+        if (article != null) {
+            long viewInc = redisCountUtil.getArticleViewCount(id);
+            long likeInc = redisCountUtil.getArticleLikeCount(id);
+            long commentInc = redisCountUtil.getArticleCommentCount(id);
+            article.setViewCount(article.getViewCount() + (int) viewInc);
+            article.setLikeCount(article.getLikeCount() + (int) likeInc);
+            article.setCommentCount(article.getCommentCount() + (int) commentInc);
+        }
+        return article;
     }
 
     @Override
@@ -60,13 +82,12 @@ public class ArticleServiceImpl implements ArticleService {
 
     @Override
     public void incrementViewCount(Integer id) {
-        articleMapper.incrementViewCount(id);
+        redisCountUtil.incrementArticleViewCount(id);  // 改为 Redis 计数
     }
 
     @Override
     public void likeArticle(Integer articleId, Integer userId, boolean like) {
         if (like) {
-            // 检查是否已点赞
             if (likeArticleMapper.exists(userId, articleId)) {
                 throw new RuntimeException("已经点过赞");
             }
@@ -74,10 +95,10 @@ public class ArticleServiceImpl implements ArticleService {
             record.setUserId(userId);
             record.setArticleId(articleId);
             likeArticleMapper.insert(record);
-            articleMapper.updateLikeCount(articleId, 1);
+            redisCountUtil.incrementArticleLikeCount(articleId, 1);   // 改为 Redis
         } else {
             likeArticleMapper.delete(userId, articleId);
-            articleMapper.updateLikeCount(articleId, -1);
+            redisCountUtil.incrementArticleLikeCount(articleId, -1);  // 改为 Redis
         }
     }
 

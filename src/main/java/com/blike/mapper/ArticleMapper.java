@@ -26,21 +26,19 @@ public interface ArticleMapper {
     @Options(useGeneratedKeys = true, keyProperty = "id")
     int insert(Article article);
 
-    // 增加阅读数
-    @Update("UPDATE article SET view_count = view_count + 1 WHERE id = #{id}")
-    int incrementViewCount(Integer id);
-
-    // 更新点赞数（delta 为 +1 或 -1）
-    @Update("UPDATE article SET like_count = like_count + #{delta} WHERE id = #{id}")
-    int updateLikeCount(@Param("id") Integer id, @Param("delta") int delta);
-
-    // 更新评论数
-    @Update("UPDATE article SET comment_count = comment_count + #{delta} WHERE id = #{id}")
-    int updateCommentCount(@Param("id") Integer id, @Param("delta") int delta);
-
     // 根据用户ID查询已发布的文章（status=1），按发布时间倒序
     @Select("SELECT a.*, u.username AS author, u.avatar AS avatar " +
             "FROM article a LEFT JOIN account u ON a.user_id = u.id " +
             "WHERE a.user_id = #{userId} AND a.status = 1 ORDER BY a.publish_time DESC")
     List<Article> selectByUserId(Integer userId);
+
+    // 添加（供定时任务使用）
+    @Update("UPDATE article SET view_count = view_count + #{count} WHERE id = #{id}")
+    int updateViewCount(@Param("id") Integer id, @Param("count") Long count);
+
+    @Update("UPDATE article SET like_count = like_count + #{count} WHERE id = #{id}")
+    int updateLikeCount(@Param("id") Integer id, @Param("count") Long count);
+
+    @Update("UPDATE article SET comment_count = comment_count + #{count} WHERE id = #{id}")
+    int updateCommentCount(@Param("id") Integer id, @Param("count") Long count);
 }

@@ -6,6 +6,7 @@ import com.blike.entity.RestBean;
 import com.blike.entity.Video;
 import com.blike.service.CommentService;
 import com.blike.service.VideoService;
+import com.blike.utils.RedisCountUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
@@ -20,6 +21,9 @@ public class VideoController {
 
     @Autowired
     private VideoService videoService;
+
+    @Autowired
+    private RedisCountUtil redisCountUtil;
 
     @GetMapping("/list")
     public RestBean<List<Video>> getVideoList() {
@@ -77,8 +81,9 @@ public class VideoController {
     @PostMapping("/{id}/play")
     public RestBean<String> incrementPlayCount(@PathVariable("id") Integer id) {
         try {
-            videoService.incrementPlayCount(id);
-            return RestBean.success("播放量+1");
+            // 核心改这里：调用Redis计数，不再直接更新数据库
+            redisCountUtil.incrementPlayCount(id);
+            return RestBean.success("播放量+1（Redis）");
         } catch (Exception e) {
             return RestBean.failure(500, "操作失败：" + e.getMessage());
         }

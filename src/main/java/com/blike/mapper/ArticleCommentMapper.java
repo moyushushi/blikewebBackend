@@ -23,6 +23,4 @@ public interface ArticleCommentMapper {
     @Delete("DELETE FROM article_comment WHERE id = #{id}")
     int deleteById(Integer id);
 
-    @Update("UPDATE article SET comment_count = comment_count + #{delta} WHERE id = #{articleId}")
-    void updateCommentCount(@Param("articleId") Integer articleId, @Param("delta") int delta);
 }

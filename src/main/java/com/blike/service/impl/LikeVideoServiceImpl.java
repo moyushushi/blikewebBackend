@@ -3,6 +3,7 @@ package com.blike.service.impl;
 import com.blike.mapper.LikeVideoMapper;
 import com.blike.mapper.VideoMapper;
 import com.blike.service.LikeVideoService;
+import com.blike.utils.RedisCountUtil;
 import jakarta.annotation.Resource;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -16,20 +17,20 @@ public class LikeVideoServiceImpl implements LikeVideoService {
     private LikeVideoMapper likeVideoMapper;
 
     @Resource
-    private VideoMapper videoMapper;
+    private RedisCountUtil redisCountUtil;
 
     @Override
     @Transactional
     public void likeVideo(Integer userId, Integer videoId) {
         likeVideoMapper.insert(userId, videoId);
-        videoMapper.incrementLikeCount(videoId);
+        redisCountUtil.incrementLikeCount(videoId, 1);
     }
 
     @Override
     @Transactional
     public void unlikeVideo(Integer userId, Integer videoId) {
         likeVideoMapper.delete(userId, videoId);
-        videoMapper.decrementLikeCount(videoId);
+        redisCountUtil.incrementLikeCount(videoId, -1);
     }
 
     @Override

@@ -52,13 +52,10 @@ mybatis:
   type-aliases-package: com.blike.entity
   configuration:
     map-underscore-to-camel-case: true
-
-# 关闭 Redis 健康检查（避免启动警告）
 management:
   health:
     redis:
       enabled: false
-
 # CORS 跨域配置（供 SecurityConfiguration 读取）
 cors:
   allowed-origins: http://localhost:5173

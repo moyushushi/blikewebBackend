@@ -2,10 +2,12 @@ package com.blike.entity;
 
 import lombok.Data;
 
+import java.io.Serializable;
 import java.time.LocalDateTime;
 
 @Data
-public class Article {
+public class Article implements Serializable {
+    private static final long serialVersionUID = 1L;
     private Integer id;
     private String title;
     private String content;

@@ -2,8 +2,11 @@ package com.blike.entity;
 
 import lombok.Data;
 
+import java.io.Serializable;
+
 @Data
-public class Video {
+public class Video implements Serializable {
+    private static final long serialVersionUID = 1L;
     private Integer id;         // 视频ID
     private String title;       // 视频标题
     private String cover;       // 封面图片路径（相对路径，如：/upload/cover/xxx.jpg）

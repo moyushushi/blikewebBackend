@@ -8,6 +8,7 @@ import com.blike.mapper.UserMapper;
 import com.blike.mapper.VideoMapper;
 import com.blike.service.VideoService;
 import com.blike.utils.FFmpegUtils;
+import com.blike.utils.RedisCountUtil;
 import jakarta.annotation.Resource;
 import org.apache.commons.io.FilenameUtils;
 import org.springframework.beans.factory.annotation.Value;
@@ -33,6 +34,9 @@ public class VideoServiceImpl implements VideoService {
     @Resource
     private FollowMapper followMapper;
 
+    @Resource
+    private RedisCountUtil redisCountUtil;
+
     @Override
     public void follow(Integer followerId, Integer followingId) {
         Follow follow = new Follow();
@@ -51,16 +55,37 @@ public class VideoServiceImpl implements VideoService {
     @Value("${file.upload.avatar-path}")
     private String avatarPath;
 
+
     @Override
     public List<Video> getVideoList() {
-        return videoMapper.selectAll();
+        List<Video> list = videoMapper.selectAll();
+        for (Video video : list) {
+            try {
+                long playInc = redisCountUtil.getPlayCount(video.getId());
+                long likeInc = redisCountUtil.getLikeCount(video.getId());
+                long commentInc = redisCountUtil.getCommentCount(video.getId());
+                video.setPlayCount(video.getPlayCount() + (int) playInc);
+                video.setLikeCount(video.getLikeCount() + (int) likeInc);
+                video.setCommentCount(video.getCommentCount() + (int) commentInc);
+            } catch (Exception e) {
+                System.err.println("叠加Redis计数失败，videoId=" + video.getId() + ", 错误：" + e.getMessage());
+            }
+        }
+        return list;
     }
-
     @Override
     public Video getVideoById(Integer id) {
-        return videoMapper.selectById(id);
+        Video video = videoMapper.selectById(id);
+        if (video != null) {
+            long playInc = redisCountUtil.getPlayCount(id);
+            long likeInc = redisCountUtil.getLikeCount(id);
+            long commentInc = redisCountUtil.getCommentCount(id);
+            video.setPlayCount(video.getPlayCount() + (int) playInc);
+            video.setLikeCount(video.getLikeCount() + (int) likeInc);
+            video.setCommentCount(video.getCommentCount() + (int) commentInc);
+        }
+        return video;
     }
-
     @Override
     public String uploadCover(MultipartFile file) {
         return uploadFile(file, coverPath, "cover");
@@ -158,6 +183,24 @@ public class VideoServiceImpl implements VideoService {
         return video;
     }
 
+    @Override
+    public List<Video> getVideosByUserId(Integer userId) {
+        List<Video> list = videoMapper.selectByUserId(userId);
+        for (Video video : list) {
+            try {
+                long playInc = redisCountUtil.getPlayCount(video.getId());
+                long likeInc = redisCountUtil.getLikeCount(video.getId());
+                long commentInc = redisCountUtil.getCommentCount(video.getId());
+                video.setPlayCount(video.getPlayCount() + (int) playInc);
+                video.setLikeCount(video.getLikeCount() + (int) likeInc);
+                video.setCommentCount(video.getCommentCount() + (int) commentInc);
+            } catch (Exception e) {
+                System.err.println("叠加Redis计数失败，videoId=" + video.getId() + ", 错误：" + e.getMessage());
+            }
+        }
+        return list;
+    }
+
     // 通用文件上传方法
     private String uploadFile(MultipartFile file, String path, String type) {
         if (file.isEmpty()) {
@@ -192,13 +235,9 @@ public class VideoServiceImpl implements VideoService {
     public List<FollowUserVO> getFollowingList(Integer userId) {
         return followMapper.selectFollowingByUserId(userId);
     }
-    @Override
-    public List<Video> getVideosByUserId(Integer userId) {
-        return videoMapper.selectByUserId(userId);
-    }
 
     @Override
     public void incrementPlayCount(Integer videoId) {
-        videoMapper.incrementPlayCount(videoId);
+        redisCountUtil.incrementPlayCount(videoId);
     }
 }

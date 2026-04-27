@@ -30,9 +30,6 @@ public interface VideoMapper {
     @Update("UPDATE video SET commentCount = commentCount + 1 WHERE id = #{videoId}")
     int incrementCommentCount(Integer videoId);
 
-    // 增加点赞数
-    @Update("UPDATE video SET likeCount = likeCount + 1 WHERE id = #{videoId}")
-    int incrementLikeCount(Integer videoId);
 
     // 减少点赞数
     @Update("UPDATE video SET likeCount = likeCount - 1 WHERE id = #{videoId}")
@@ -45,8 +42,18 @@ public interface VideoMapper {
             "ORDER BY v.publishTime DESC")
     List<Video> selectByUserId(Integer userId);
 
-    @Update("UPDATE video SET playCount = playCount + 1 WHERE id = #{id}")
-    int incrementPlayCount(Integer id);
+
+    @Update("UPDATE video SET playCount = playCount + #{count} WHERE id = #{videoId}")
+    int UpdatePlayCount(@Param("videoId") Integer videoId, @Param("count") Long count);
+
+    /**
+     * 批量更新点赞数（累加）
+     */
+    @Update("UPDATE video SET likeCount = likeCount + #{count} WHERE id = #{videoId}")
+    int UpdateLikeCount(@Param("videoId") Integer videoId, @Param("count") Long count);
+
+    @Update("UPDATE video SET commentCount = commentCount + #{count} WHERE id = #{videoId}")
+    int UpdateCommentCount(@Param("videoId") Integer videoId, @Param("count") Long count);
 
 }
 
